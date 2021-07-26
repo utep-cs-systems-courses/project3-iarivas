@@ -11,7 +11,6 @@ static char gcount = 0;
 static char rcount = 0;
 static char siren = 0; 
 static char note = 0;
-int min = 5;
 int song[] = {3824,3405,3033,2863,2551,2272,2026,0,0,0,0};
 short drawPos[2] = {30,30}, controlPos[2] = {30,30}, last[2] = {30,30};
 short velocity[2] = {2,4}, limits[2] = {screenWidth-35, screenHeight-8};
@@ -214,19 +213,17 @@ void first_song()
   g = 0;
   b = 31;
   r = 31;
-  if(min > 65){ min = 5; clearScreen(COLOR_AQUAMARINE);}
-  if(note == 12){ note = 0; min += 10; }
+  if(note == 12){ note = 0; }
   else if((note % 2) == 0){
-    for(int i = 0; i < 64-min; i++)
+    for(int i = 0; i < 64; i++)
     {
       int sCol = row - i;
       int eCol = row + i;
-      int width = min;
       u_int color = (b << 11) + (g >> 5) + r;
-      fillRectangle(sCol, row + i, width, i, COLOR_WHITE);
-      fillRectangle(sCol, row + i, width, i, color);
-      fillRectangle(sCol, row - i, width, i, COLOR_WHITE);
-      fillRectangle(sCol, row - i, width, i, color);
+      fillRectangle(sCol, row + i, 5, i, COLOR_WHITE);
+      fillRectangle(sCol, row + i, 5, i, color);
+      fillRectangle(sCol, row - i, 5, i, COLOR_WHITE);
+      fillRectangle(sCol, row - i, 5, i, color);
       g = (g + 1) % 64;
       b = (b + 2) % 32;
       r = (r - 3) % 32;
@@ -239,12 +236,11 @@ void first_song()
     {
       int sCol = row - i;
       int eCol = row + i;
-      int width = min;
       u_int color = (b << 11) + (g >> 5) + r;
-      fillRectangle(sCol, row + i, width, i, COLOR_WHITE);
-      fillRectangle(sCol, row + i, width, i, color);
-      fillRectangle(sCol, row - i, width, i, COLOR_WHITE);
-      fillRectangle(sCol, row - i, width, i, color);
+      fillRectangle(sCol, row + i, 5, i, COLOR_WHITE);
+      fillRectangle(sCol, row + i, 5, i, color);
+      fillRectangle(sCol, row - i, 5, i, COLOR_WHITE);
+      fillRectangle(sCol, row - i, 5, i, color);
       g = (g + 1) % 64;
       b = (b + 2) % 32;
       r = (r - 3) % 32;
@@ -274,5 +270,5 @@ void update_loc()
   }
 }
 
-void state_reset(){ gcount = 0; rcount = 0; siren = 0; note = 0; }
+void state_reset(){ gcount = 0; rcount = 0; siren = 0; note = 0; clearScreen(COLOR_AQUAMARINE); }
   

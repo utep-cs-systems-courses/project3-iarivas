@@ -15,7 +15,7 @@ int main(void) {
   lcd_init();
   buzzer_init();
   u_char width = screenWidth, height = screenHeight;
-  clearScreen(COLOR_BLUE);
+  clearScreen(COLOR_AQUAMARINE);
   enableWDTInterrupts();	/* enable periodic interrupt */
 
   or_sr(0x18);		/* CPU off, GIE on */

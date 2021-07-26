@@ -13,7 +13,7 @@ static char siren = 0;
 static char note = 0;
 int song[] = {3824,3405,3033,2863,2551,2272,2026,0,0,0,0};
 short drawPos[4] = {30,30,40,40}, controlPos[4] = {30,30,40,40}, last[4] = {10,10,20,20};
-short velocity[4] = {3,0,3,0}, limits[4] = {screenWidth-35, screenHeight-8, screenWidth-35, screenHeight-8};
+short velocity[4] = {2,4,2,4}, limits[4] = {screenWidth-35, screenHeight-8, screenWidth-35, screenHeight-8};
 u_int fontFgColor = COLOR_RED;
 
 void toggle_red()		/* always toggle! */
@@ -191,7 +191,7 @@ void police_siren()
 
 void first_tune()
 {
-  if(note == 10){ note = 0; }
+  if(note == 12){ note = 0; }
   else if((note % 2) == 0){
     buzzer_set_period(0);
   }
@@ -203,25 +203,58 @@ void first_tune()
 		  "00000000", fontFgColor, COLOR_YELLOW);
   }
   drawString5x7(last[0], last[1],
-		  "00000000", COLOR_BLUE, COLOR_BLUE);
+		  "00000000", COLOR_AQUAMARINE, COLOR_AQUAMARINE);
   drawString5x7(last[2], last[3],
-		  "00000000", COLOR_BLUE, COLOR_BLUE);
+		  "00000000", COLOR_AQUAMARINE, COLOR_AQUAMARINE);
   buzzer_set_period(song[note]);
   note++;
 }
 
 void first_song()
 {
+  short col = 80, row = 64;
+  char b, g, r;
+  g = 0;
+  b = 31;
+  r = 31;
   if(note == 12){ note = 0; }
   else if((note % 2) == 0){
+    clearScreen(COLOR_FIREBRICK);
+    for(int i = 0; i < 64; i++)
+    {
+      int sCol = row - i;
+      int eCol = row + i;
+      int width = 1 + eCol - sCol;
+      u_int color = (b << 11) + (g >> 5) + r;
+      fillRectangle(sCol, row + i, width, 1, color);
+      drawRectOutline(sCol, row - i, width, 1, color);
+      g = (g + 1) % 64;
+      b = (b + 2) % 32;
+      r = (r - 3) % 32;
+    }
     buzzer_set_period(0);
     toggle_green_bright();
+  }
+  else{
+    clearScreen(COLOR_AQUAMARINE);
+    for(int i = 0; i < 64; i++)
+    {
+      int sCol = row - i;
+      int eCol = row + i;
+      int width = 1 + eCol - sCol;
+      u_int color = (b << 11) + (g >> 5) + r;
+      fillRectangle(sCol, row - i, width, 1, color);
+      drawRectOutline(sCol, row + i, width, 1, color);
+      g = (g + 1) % 64;
+      b = (b + 2) % 32;
+      r = (r - 3) % 32;
+    }
+  buzzer_set_period(song[note]);
+  note++;
   }
   if(song[note] != 0){
     toggle_red();    
   }
-  buzzer_set_period(song[note]);
-  note++;
 }
 
 void update_loc()
@@ -241,5 +274,5 @@ void update_loc()
   }
 }
 
-void state_reset(){ gcount = 0; rcount = 0; siren = 0; note = 0; }
+void state_reset(){ gcount = 0; rcount = 0; siren = 0; note = 0; clearScreen(COLOR_AQUAMARINE); }
   

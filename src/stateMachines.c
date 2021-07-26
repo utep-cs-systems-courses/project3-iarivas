@@ -11,9 +11,10 @@ static char gcount = 0;
 static char rcount = 0;
 static char siren = 0; 
 static char note = 0;
+int min = 5;
 int song[] = {3824,3405,3033,2863,2551,2272,2026,0,0,0,0};
-short drawPos[4] = {30,30,40,40}, controlPos[4] = {30,30,40,40}, last[4] = {10,10,20,20};
-short velocity[4] = {2,4,2,4}, limits[4] = {screenWidth-35, screenHeight-8, screenWidth-35, screenHeight-8};
+short drawPos[2] = {30,30}, controlPos[2] = {30,30}, last[2] = {30,30};
+short velocity[2] = {2,4}, limits[2] = {screenWidth-35, screenHeight-8};
 u_int fontFgColor = COLOR_RED;
 
 void toggle_red()		/* always toggle! */
@@ -198,14 +199,10 @@ void first_tune()
   else if((note % 3) == 0){
     update_loc();
     drawString5x7(drawPos[0], drawPos[1],
-		  "00000000", fontFgColor, COLOR_YELLOW);
-    drawString5x7(drawPos[2], drawPos[3],
-		  "00000000", fontFgColor, COLOR_YELLOW);
+		  "FIREBALL", fontFgColor, COLOR_YELLOW);
   }
   drawString5x7(last[0], last[1],
-		  "00000000", COLOR_AQUAMARINE, COLOR_AQUAMARINE);
-  drawString5x7(last[2], last[3],
-		  "00000000", COLOR_AQUAMARINE, COLOR_AQUAMARINE);
+		  "FIREBALL", COLOR_AQUAMARINE, COLOR_AQUAMARINE);
   buzzer_set_period(song[note]);
   note++;
 }
@@ -217,17 +214,19 @@ void first_song()
   g = 0;
   b = 31;
   r = 31;
-  if(note == 12){ note = 0; }
+  if(min > 65){ min = 5; clearScreen(COLOR_AQUAMARINE);}
+  if(note == 12){ note = 0; min += 10; }
   else if((note % 2) == 0){
-    clearScreen(COLOR_FIREBRICK);
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < 64-min; i++)
     {
       int sCol = row - i;
       int eCol = row + i;
-      int width = 1 + eCol - sCol;
+      int width = min;
       u_int color = (b << 11) + (g >> 5) + r;
-      fillRectangle(sCol, row + i, width, 1, color);
-      drawRectOutline(sCol, row - i, width, 1, color);
+      fillRectangle(sCol, row + i, width, i, COLOR_WHITE);
+      fillRectangle(sCol, row + i, width, i, color);
+      fillRectangle(sCol, row - i, width, i, COLOR_WHITE);
+      fillRectangle(sCol, row - i, width, i, color);
       g = (g + 1) % 64;
       b = (b + 2) % 32;
       r = (r - 3) % 32;
@@ -235,31 +234,32 @@ void first_song()
     buzzer_set_period(0);
     toggle_green_bright();
   }
-  else{
-    clearScreen(COLOR_AQUAMARINE);
+  else if ((note % 4) == 0){
     for(int i = 0; i < 64; i++)
     {
       int sCol = row - i;
       int eCol = row + i;
-      int width = 1 + eCol - sCol;
+      int width = min;
       u_int color = (b << 11) + (g >> 5) + r;
-      fillRectangle(sCol, row - i, width, 1, color);
-      drawRectOutline(sCol, row + i, width, 1, color);
+      fillRectangle(sCol, row + i, width, i, COLOR_WHITE);
+      fillRectangle(sCol, row + i, width, i, color);
+      fillRectangle(sCol, row - i, width, i, COLOR_WHITE);
+      fillRectangle(sCol, row - i, width, i, color);
       g = (g + 1) % 64;
       b = (b + 2) % 32;
       r = (r - 3) % 32;
     }
-  buzzer_set_period(song[note]);
-  note++;
   }
   if(song[note] != 0){
     toggle_red();    
   }
+  buzzer_set_period(song[note]);
+  note++;
 }
 
 void update_loc()
 {
-  for (char axis = 0; axis < 4; axis++) {
+  for (char axis = 0; axis < 2; axis++) {
     short newVal = controlPos[axis] + velocity[axis];
     if (newVal < 10 || newVal > limits[axis])
       velocity[axis] = -velocity[axis];
@@ -267,12 +267,12 @@ void update_loc()
       controlPos[axis] = newVal;
   }
   fontFgColor = (fontFgColor == COLOR_RED) ? COLOR_RED : COLOR_BLACK;
-  for (char axis = 0; axis < 4; axis++)
+  for (char axis = 0; axis < 2; axis++)
   {
     last[axis] = drawPos[axis];
     drawPos[axis] = controlPos[axis];
   }
 }
 
-void state_reset(){ gcount = 0; rcount = 0; siren = 0; note = 0; clearScreen(COLOR_AQUAMARINE); }
+void state_reset(){ gcount = 0; rcount = 0; siren = 0; note = 0; }
   

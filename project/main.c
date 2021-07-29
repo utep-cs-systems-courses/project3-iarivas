@@ -8,8 +8,8 @@
 
 #define LED BIT6
 short shapes[2] = {0,1};
-short drawPos[2] = {30,30}, controlPos[2] = {30,30}, prvPos[2] = {30,30};
-short velocity[2] = {0,0}, limits[2] = {screenWidth-35, screenHeight-8};
+short drawPos[2] = {30,30}, prvPos[2] = {30,30};
+short limits[2] = {screenWidth-35, screenHeight};
 u_int Colors[5] = {COLOR_AQUAMARINE , COLOR_FOREST_GREEN, COLOR_SEA_GREEN, COLOR_FIREBRICK, COLOR_GOLD};
 char switch_state = 4;
 int current_color = 0, lastShape = 0, BSP = 1000; 
@@ -25,13 +25,6 @@ void wdt_c_handler()
     current_color++;
     if(current_color > 5)
       current_color = 0;
-    for (char axis = 0; axis < 2; axis++) {
-      short newVal = controlPos[axis] + velocity[axis];
-      if (newVal <10 || newVal > limits[axis])
-	velocity[axis] = -velocity[axis];
-      else
-	controlPos[axis] = newVal;
-    }
     redrawScreen = 1;
   }
 }
@@ -42,14 +35,14 @@ void draw_shape()
     //	prvPos[axis] = drawPos[axis];
   switch(lastShape){
   case 0:
-    fillRectangle(drawPos[0]-25, drawPos[0], 50, 25, Colors[current_color]);
+    fillRectangle(drawPos[0]-25, drawPos[1], 50, 25, Colors[current_color]);
   case 1:
     for(int i = 0; i < 25; i++)
       {
 	int startCol = drawPos[0] - i;
 	int endCol = drawPos[0] + i;
 	int width = 1 + endCol - startCol;
-	fillRectangle(startCol, drawPos[0]+i, width, 1, Colors[current_color]);
+	fillRectangle(startCol, drawPos[1]+i, width, 1, Colors[current_color]);
       }
   }
 }
@@ -63,12 +56,18 @@ void clear_shape()
 	int startCol = prvPos[0] - i;
 	int endCol = prvPos[0] + i;
 	int width = 1 + endCol - startCol;
-	fillRectangle(startCol, prvPos[0]+i, width, 1, COLOR_WHITE);
+	fillRectangle(startCol, prvPos[1]+i, width, 1, COLOR_WHITE);
       }
 
   case 1:
-    fillRectangle(prvPos[0]-25, prvPos[0], 50, 25, COLOR_WHITE);
+    fillRectangle(prvPos[0]-25, prvPos[1], 50, 25, COLOR_WHITE);
   }
+}
+
+void clear_word()
+{
+  drawString5x7(50, 50,
+			"Game Over", COLOR_WHITE, COLOR_WHITE);
 }
 
 void main()
@@ -81,7 +80,7 @@ void main()
   buzzer_init();
   enableWDTInterrupts();
   or_sr(0x8);  
-
+  
   switch_init();
   clearScreen(COLOR_WHITE);
   
@@ -89,12 +88,12 @@ void main()
     if(redrawScreen){
       redrawScreen = 0;
       and_sr(~8);
-      P1OUT &= ~LED;
       for (char axis = 0; axis < 2; axis++){
 	prvPos[axis] = drawPos[axis];
-	drawPos[axis] = controlPos[axis];
       }
-	if(switch_state != 4){
+      if(switch_state != 4){
+	P1OUT &= ~LED;
+	clear_word();
 	switch(switch_state){
 	case 0:
 	  lastShape = (shapes[lastShape] == 0) ? 1 : 0;
@@ -109,11 +108,7 @@ void main()
 	    BSP += 250;
 	  }
 	  buzzer_set_period(BSP);
-	  if(velocity[0] <= 3){
-	    velocity[0] = velocity[0] + 1;
-	  }else{
-	    velocity[0] = 0;
-	  }
+	  drawPos[0] = (drawPos[0] < 80) ? drawPos[0] + 10 : 30;
 	  clear_shape();
 	  draw_shape();
 	  break;
@@ -124,22 +119,18 @@ void main()
 	    BSP -= 250;
 	  }
 	  buzzer_set_period(BSP);
-	  if(velocity[1] <= 6){
-	    velocity[1] = velocity[1] + 2;
-	  }else{
-	    velocity[1] = 2;
-	  }
+	  drawPos[1] = (drawPos[1] < 160) ? drawPos[1] + 20 : 30;
 	  clear_shape();
 	  draw_shape();
 	  break;
 	case 3:
 	  clearScreen(COLOR_WHITE);
+	  drawString5x7(50, 50,
+			"Game Over", COLOR_WHITE, COLOR_BLACK);
 	  buzzer_set_period(0);
-	  velocity[0] = 0;
-	  velocity[1] = 0;
 	  drawPos[0] = 30; drawPos[1] = 30;
-	  controlPos[0] = 30; controlPos[1] = 30;
 	  prvPos[0] = 30; prvPos[1] = 30;
+	  switch_state = 4;
 	  break;
 	}
       }

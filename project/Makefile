@@ -10,7 +10,7 @@ AS              = msp430-elf-gcc -mmcu=${CPU} -c
 all:Lab3.elf
 
 #additional rules for files
-Lab3.elf: ${COMMON_OBJECTS} wdt_handler.o buzzer.o switches.o main.o ../lib/libTimer.a
+Lab3.elf: ${COMMON_OBJECTS} wdt_handler.o switch_advance.o buzzer.o switches.o main.o ../lib/libTimer.a
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ -lTimer -lLcd 
 
 load: Lab3.elf

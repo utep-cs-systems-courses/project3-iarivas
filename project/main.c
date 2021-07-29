@@ -20,14 +20,14 @@ void wdt_c_handler()
   static int secCount = 0;
 
   secCount++;
-  if (secCount == 250) {
+  if (secCount == 50) {
     secCount = 0;
     current_color++;
     if(current_color > 5)
       current_color = 0;
     for (char axis = 0; axis < 2; axis++) {
       short newVal = controlPos[axis] + velocity[axis];
-      if (newVal < 10 || newVal > limits[axis])
+      if (newVal <10 || newVal > limits[axis])
 	velocity[axis] = -velocity[axis];
       else
 	controlPos[axis] = newVal;
@@ -38,18 +38,18 @@ void wdt_c_handler()
 
 void draw_shape()
 {
-  for (char axis = 0; axis < 2; axis++)
-	prvPos[axis] = drawPos[axis];
+  //for (char axis = 0; axis < 2; axis++)
+    //	prvPos[axis] = drawPos[axis];
   switch(lastShape){
   case 0:
-    fillRectangle(drawPos[0], drawPos[0], 40, 40, Colors[current_color]);
+    fillRectangle(drawPos[0]-25, drawPos[0], 50, 25, Colors[current_color]);
   case 1:
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < 25; i++)
       {
-	int startCol = drawPos[0] - 1;
-	int endCol = drawPos[0] + 1;
+	int startCol = drawPos[0] - i;
+	int endCol = drawPos[0] + i;
 	int width = 1 + endCol - startCol;
-	fillRectangle(startCol, drawPos[0], width, 1, Colors[current_color]);
+	fillRectangle(startCol, drawPos[0]+i, width, 1, Colors[current_color]);
       }
   }
 }
@@ -58,16 +58,16 @@ void clear_shape()
 {
   switch(lastShape){
   case 0:
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < 25; i++)
       {
-	int startCol = prvPos[0] - 1;
-	int endCol = prvPos[0] + 1;
+	int startCol = prvPos[0] - i;
+	int endCol = prvPos[0] + i;
 	int width = 1 + endCol - startCol;
-	fillRectangle(startCol, prvPos[0], width, 1, COLOR_WHITE);
+	fillRectangle(startCol, prvPos[0]+i, width, 1, COLOR_WHITE);
       }
 
   case 1:
-    fillRectangle(prvPos[0], prvPos[0], 40, 40, COLOR_WHITE);
+    fillRectangle(prvPos[0]-25, prvPos[0], 50, 25, COLOR_WHITE);
   }
 }
 
@@ -89,55 +89,65 @@ void main()
     if(redrawScreen){
       redrawScreen = 0;
       and_sr(~8);
-      for (char axis = 0; axis < 2; axis++)
+      P1OUT &= ~LED;
+      for (char axis = 0; axis < 2; axis++){
+	prvPos[axis] = drawPos[axis];
 	drawPos[axis] = controlPos[axis];
-      if(switch_state != 4){
+      }
+	if(switch_state != 4){
 	switch(switch_state){
 	case 0:
 	  lastShape = (shapes[lastShape] == 0) ? 1 : 0;
+	  clear_shape();
 	  draw_shape();
 	  switch_state = 4;
+	  break; 
 	case 1:
 	  if(BSP >= 3000){
-	    BSP = 3000;
+	    BSP = 1000;
 	  }else{
 	    BSP += 250;
 	  }
 	  buzzer_set_period(BSP);
-	  if(velocity[0] <= 8){
-	    velocity[0] = velocity[0] + 2;
+	  if(velocity[0] <= 3){
+	    velocity[0] = velocity[0] + 1;
 	  }else{
 	    velocity[0] = 0;
 	  }
-	  switch_state = 4;
+	  clear_shape();
+	  draw_shape();
+	  break;
 	case 2:
 	  if(BSP <= 1000){
-	    BSP = 1000;
+	    BSP = 3000;
 	  }else{
 	    BSP -= 250;
 	  }
 	  buzzer_set_period(BSP);
-	  if(velocity[1] <= 8){
+	  if(velocity[1] <= 6){
 	    velocity[1] = velocity[1] + 2;
 	  }else{
-	    velocity[1] = 0;
+	    velocity[1] = 2;
 	  }
-	  switch_state = 4;
+	  clear_shape();
+	  draw_shape();
+	  break;
 	case 3:
 	  clearScreen(COLOR_WHITE);
 	  buzzer_set_period(0);
 	  velocity[0] = 0;
 	  velocity[1] = 0;
-	  switch_state = 4;
+	  drawPos[0] = 30; drawPos[1] = 30;
+	  controlPos[0] = 30; controlPos[1] = 30;
+	  prvPos[0] = 30; prvPos[1] = 30;
+	  break;
 	}
       }
     }
     or_sr(8);
+    or_sr(0x10);
+    P1OUT |= LED;
   }
-  
-  P1OUT &= ~LED;
-  or_sr(0x10);
-  P1OUT |= LED;
 }
 
 void
